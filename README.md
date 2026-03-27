@@ -2,8 +2,6 @@
 
 This is a modern, minimalist web dashboard for converting PDFs to handwritten notes.
 
-## Live Website
-🌍 [Visit the Web App](https://iammsp-star.github.io/pdf-to-handwritten/)
 
 ## Features
 - **Minimalist Aesthetic**: Soft shadows, rounded corners, uses the Inter font for a Notion/Google Docs look. Included Light and Dark modes.

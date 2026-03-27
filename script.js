@@ -80,6 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
             extractSkeleton.classList.add('hidden');
             extractStatus.classList.add('hidden');
             textEditor.value = `This is mock extracted text from "${file.name}".\n\nYou can effortlessly edit it here before generating it into authentic looking handwritten pages.\n\nThe settings on the right will auto-apply to the generated output.`;
+            // Trigger real-time preview after extraction
+            updateRealTimePreview();
         }, 2000);
     }
 
@@ -97,6 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add to clicked
             swatch.classList.add('active');
             swatch.querySelector('.check-icon').classList.remove('hidden');
+            // Trigger real-time preview update
+            updateRealTimePreview();
         });
     });
 
@@ -108,91 +112,137 @@ document.addEventListener('DOMContentLoaded', () => {
         sliderValue.textContent = `${e.target.value}%`;
     });
 
-    // --- Generation Mock Logic ---
+    // --- Real-Time Generation Logic ---
     const generateBtn = document.getElementById('generate-btn');
     const previewPlaceholder = document.getElementById('preview-placeholder');
     const previewSkeleton = document.getElementById('preview-skeleton');
     const previewResult = document.getElementById('preview-result');
+    const mockDoc = previewResult.querySelector('.mock-generated-doc');
+    const textElem = previewResult.querySelector('.written-text');
     
     const downloadPdfBtn = document.getElementById('btn-download-pdf');
     const downloadImgBtn = document.getElementById('btn-download-img');
 
+    function updateRealTimePreview() {
+        if (!textEditor.value.trim()) {
+            previewPlaceholder.classList.remove('hidden');
+            previewResult.classList.add('hidden');
+            downloadPdfBtn.disabled = true;
+            downloadImgBtn.disabled = true;
+            return;
+        }
+
+        previewPlaceholder.classList.add('hidden');
+        previewResult.classList.remove('hidden');
+        previewSkeleton.classList.add('hidden');
+        
+        downloadPdfBtn.disabled = false;
+        downloadImgBtn.disabled = false;
+
+        // Apply text
+        textElem.textContent = textEditor.value;
+
+        // Apply Color
+        const activeColor = document.querySelector('.color-swatch.active').dataset.value;
+        mockDoc.classList.remove('color-blue', 'color-black');
+        mockDoc.classList.add(`color-${activeColor}`);
+
+        // Apply Background
+        const paperBg = document.getElementById('paper-bg').value;
+        mockDoc.classList.remove('bg-lined');
+        mockDoc.style.backgroundSize = '100% 1.5rem';
+        mockDoc.style.borderLeft = 'none';
+        mockDoc.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+        
+        if (paperBg === 'classic-ruled') {
+            mockDoc.style.backgroundColor = '#ffffff';
+            mockDoc.style.backgroundImage = 'linear-gradient(#e5e5e5 1px, transparent 1px)';
+            mockDoc.style.borderLeft = '2px solid #ffcccc'; // margin line mock
+        } else if (paperBg === 'yellow-pad') {
+            mockDoc.style.backgroundColor = '#fffce0';
+            mockDoc.style.backgroundImage = 'linear-gradient(#a3c2e0 1px, transparent 1px)';
+            mockDoc.style.borderLeft = '3px double #ffb3b3';
+        } else if (paperBg === 'eng-grid') {
+            mockDoc.style.backgroundColor = '#ffffff';
+            mockDoc.style.backgroundImage = 'linear-gradient(#e5e5e5 1px, transparent 1px), linear-gradient(90deg, #e5e5e5 1px, transparent 1px)';
+            mockDoc.style.backgroundSize = '1.5rem 1.5rem';
+        } else if (paperBg === 'crisp-a4') {
+            mockDoc.style.backgroundColor = '#ffffff';
+            mockDoc.style.backgroundImage = 'none';
+        } else if (paperBg === 'backpack') {
+            mockDoc.style.backgroundColor = '#fdfcfb';
+            mockDoc.style.backgroundImage = 'linear-gradient(#e5e5e5 1px, transparent 1px)';
+            mockDoc.style.boxShadow = 'inset -10px -10px 20px rgba(0,0,0,0.05), inset 10px 10px 20px rgba(0,0,0,0.02)';
+        } else if (paperBg === 'midnight-coffee') {
+            mockDoc.style.backgroundColor = '#f7f3e8';
+            mockDoc.style.backgroundImage = 'radial-gradient(circle at 80% 20%, rgba(139,69,19,0.1) 0%, rgba(139,69,19,0.02) 15%, transparent 20%)';
+        }
+
+        // Apply Font
+        const fontStyle = document.getElementById('font-style').value;
+        
+        textElem.style.fontFamily = "inherit";
+        textElem.style.fontStyle = 'normal';
+        textElem.style.textTransform = 'none';
+        textElem.style.letterSpacing = 'normal';
+        textElem.style.opacity = '1';
+        textElem.style.transform = 'none';
+        
+        if (['cram-session', 'doctors-note', 'left-handed'].includes(fontStyle)) {
+            textElem.style.fontFamily = "'Caveat', cursive, serif";
+            if (fontStyle === 'doctors-note') {
+                textElem.style.letterSpacing = '-1px';
+                textElem.style.transform = 'rotate(-1deg)';
+            } else if (fontStyle === 'left-handed') {
+                textElem.style.fontStyle = 'italic';
+                textElem.style.transform = 'skewX(10deg)';
+            }
+        } else if (['love-letter', 'fountain-pen', 'grandmas-recipe'].includes(fontStyle)) {
+            textElem.style.fontFamily = "cursive, serif"; // Ideally 'Dancing Script' or similar
+            textElem.style.fontStyle = 'italic';
+            if (fontStyle === 'grandmas-recipe') {
+                textElem.style.opacity = '0.85'; // fading ink mock
+            }
+        } else {
+            // Neat & Readable
+            if (fontStyle === 'architect') {
+                textElem.style.fontFamily = "monospace";
+                textElem.style.textTransform = 'uppercase';
+                textElem.style.letterSpacing = '1px';
+            } else if (fontStyle === 'valedictorian') {
+                textElem.style.fontFamily = "sans-serif";
+            } else {
+                textElem.style.fontFamily = "'Comic Sans MS', cursive, sans-serif"; // Study Hall
+            }
+        }
+    }
+
+    // Bind Event Listeners for Real-Time UI updates
+    textEditor.addEventListener('input', updateRealTimePreview);
+    document.getElementById('font-style').addEventListener('change', updateRealTimePreview);
+    document.getElementById('paper-bg').addEventListener('change', updateRealTimePreview);
+    
+    // Convert 'Generate' button to represent the backend High-Res API call
     generateBtn.addEventListener('click', () => {
         if (!textEditor.value.trim()) {
             alert('Please upload a PDF or enter some text first.');
             return;
         }
 
-        // Hide current states
-        previewPlaceholder.classList.add('hidden');
-        previewResult.classList.add('hidden');
-        
-        // Show loading skeleton
-        previewSkeleton.classList.remove('hidden');
         generateBtn.disabled = true;
-        generateBtn.innerHTML = 'Generating...';
+        const ogText = generateBtn.innerHTML;
+        generateBtn.innerHTML = 'Generating High-Res PDF on Server...';
 
-        // Simulate API call to generate image
+        // Simulate backend generation delay
         setTimeout(() => {
-            previewSkeleton.classList.add('hidden');
-            
-            // Apply current UI settings to mock view
-            applySettingsToMockResult();
-            
-            previewResult.classList.remove('hidden');
             generateBtn.disabled = false;
-            generateBtn.innerHTML = `<svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg> Generate again`;
-
-            // Enable downloads
-            downloadPdfBtn.disabled = false;
-            downloadImgBtn.disabled = false;
-
-        }, 2500);
+            generateBtn.innerHTML = ogText;
+            alert("This is where we send the text and settings to the Python backend to do the real high-res rendering!");
+        }, 1500);
     });
 
-    function applySettingsToMockResult() {
-        const mockDoc = previewResult.querySelector('.mock-generated-doc');
-        const textElem = previewResult.querySelector('.written-text');
-        
-        // Text
-        textElem.textContent = textEditor.value.substring(0, 100) + '... (preview truncated)';
-
-        // Color
-        const activeColor = document.querySelector('.color-swatch.active').dataset.value;
-        mockDoc.classList.remove('color-blue', 'color-black');
-        mockDoc.classList.add(`color-${activeColor}`);
-
-        // Background
-        const paperBg = document.getElementById('paper-bg').value;
-        if (paperBg === 'lined') {
-            mockDoc.classList.add('bg-lined');
-            mockDoc.style.backgroundColor = '#fdfaf6';
-            mockDoc.style.backgroundImage = 'linear-gradient(#e5e5e5 1px, transparent 1px)';
-        } else if (paperBg === 'blank') {
-            mockDoc.classList.remove('bg-lined');
-            mockDoc.style.backgroundImage = 'none';
-            mockDoc.style.backgroundColor = '#ffffff';
-        } else if (paperBg === 'grid') {
-            mockDoc.classList.remove('bg-lined');
-            mockDoc.style.backgroundColor = '#fdfaf6';
-            mockDoc.style.backgroundImage = 'linear-gradient(#e5e5e5 1px, transparent 1px), linear-gradient(90deg, #e5e5e5 1px, transparent 1px)';
-            mockDoc.style.backgroundSize = '1.5rem 1.5rem';
-        }
-
-        // Font
-        const fontStyle = document.getElementById('font-style').value;
-        if (fontStyle === 'messy') {
-            textElem.style.fontFamily = "'Caveat', cursive, serif";
-            textElem.style.fontStyle = 'normal';
-        } else if (fontStyle === 'neat') {
-            textElem.style.fontFamily = "cursive, sans-serif";
-            textElem.style.fontStyle = 'italic';
-        } else {
-            textElem.style.fontFamily = "monospace";
-            textElem.style.fontStyle = 'normal';
-            textElem.style.textTransform = 'uppercase';
-        }
+    // Initial check in case browser cached text in textarea
+    if(textEditor.value.trim().length > 0) {
+        updateRealTimePreview();
     }
 });
