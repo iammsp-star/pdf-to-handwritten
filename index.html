@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Handwritten - Open Source Converter</title>
+    <meta name="description" content="Convert PDF text into natural-looking handwriting with smart human imperfections.">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-light">
+    <!-- Navbar -->
+    <header class="navbar">
+        <div class="logo-container">
+            <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <path d="m16 13-3.5 3.5-2-2-3.5 3.5"/>
+            </svg>
+            <span class="logo-text">PDF to Handwritten</span>
+        </div>
+        <div class="nav-actions">
+            <a href="https://github.com/iammsp-star/pdf-to-handwritten" target="_blank" class="github-star-btn" aria-label="Star on GitHub">
+                <svg class="icon-star" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                Star
+            </a>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                <!-- Sun Icon for Light Mode (implies click to go dark, or show opposite) -->
+                <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+                <svg id="theme-icon-sun" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/>
+                    <line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard-container">
+        
+        <!-- Left Column: Input & Edit -->
+        <div class="col-input panel">
+            <!-- Drag & Drop Zone -->
+            <div id="drop-zone" class="upload-area card shadow-soft rounded">
+                <div class="upload-content">
+                    <div class="upload-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <p class="upload-text">Drag & drop your PDF here</p>
+                    <p class="upload-subtext">or <button class="text-btn">click to browse</button></p>
+                </div>
+                <input type="file" id="file-input" accept="application/pdf" hidden>
+            </div>
+
+            <!-- Extracted Text Area -->
+            <div class="editor-area card shadow-soft rounded flex-fill mt-16">
+                <div class="card-header">
+                    <h2 class="card-title">Extracted Text</h2>
+                    <span class="status-badge hidden" id="extraction-status">Extracting...</span>
+                </div>
+                
+                <div class="editor-wrapper relative-wrapper">
+                    <!-- Skeleton Loader -->
+                    <div id="extract-skeleton" class="skeleton-overlay hidden">
+                        <div class="skeleton-line full"></div>
+                        <div class="skeleton-line full"></div>
+                        <div class="skeleton-line three-quarter"></div>
+                        <div class="skeleton-line full"></div>
+                        <div class="skeleton-line half"></div>
+                    </div>
+                    
+                    <textarea id="text-editor" class="notepad-input placeholder-aware" placeholder="Upload a PDF and your extracted text will appear here.&#10;&#10;You can edit this text like a simple notepad before generating handwriting."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Settings & Preview -->
+        <div class="col-output panel">
+            <!-- Settings Panel -->
+            <div class="settings-area card shadow-soft rounded">
+                <h2 class="card-title mb-16">Settings</h2>
+                
+                <div class="settings-grid">
+                    <!-- Dropdowns -->
+                    <div class="form-group dropdown-group">
+                        <label for="font-style" class="form-label">Handwriting Style</label>
+                        <div class="select-wrapper">
+                            <select id="font-style" class="modern-select">
+                                <option value="messy">Messy & Natural</option>
+                                <option value="neat">Neat Cursive</option>
+                                <option value="architect">Architect Block</option>
+                            </select>
+                            <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="form-group dropdown-group">
+                        <label for="paper-bg" class="form-label">Paper Background</label>
+                        <div class="select-wrapper">
+                            <select id="paper-bg" class="modern-select">
+                                <option value="lined">Lined Paper</option>
+                                <option value="blank">Blank White</option>
+                                <option value="grid">Grid Paper</option>
+                            </select>
+                            <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-row mt-20">
+                    <!-- Ink Color -->
+                    <div class="form-group color-group">
+                        <label class="form-label">Ink Color</label>
+                        <div class="swatch-container">
+                            <button class="color-swatch swatch-blue active" aria-label="Blue Ink" data-value="blue">
+                                <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            </button>
+                            <button class="color-swatch swatch-black" aria-label="Black Ink" data-value="black">
+                                <svg class="check-icon hidden" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Imperfection Slider -->
+                    <div class="form-group slider-group flex-fill">
+                        <div class="slider-header">
+                            <label for="imperfections" class="form-label">Human Imperfections</label>
+                            <span id="imperfection-value" class="slider-value">40%</span>
+                        </div>
+                        <input type="range" id="imperfections" class="modern-slider" min="0" max="100" value="40">
+                        <p class="helper-text">Smart variations: margin shifts, ink fade, varying sizes.</p>
+                    </div>
+                </div>
+
+                <!-- Generate Action -->
+                <div class="action-container mt-24">
+                    <button id="generate-btn" class="btn-primary full-width">
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg> <!-- Magic/Sparkle alternative -->
+                        Generate Handwriting
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview Window -->
+            <div class="preview-area card shadow-soft rounded mt-16 flex-fill">
+                <div class="card-header">
+                    <h2 class="card-title">Preview</h2>
+                </div>
+                
+                <div class="preview-window">
+                    <div id="preview-placeholder" class="preview-state empty-state">
+                        <svg class="empty-icon text-muted" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                        <p>Your generated document will appear here</p>
+                    </div>
+
+                    <div id="preview-skeleton" class="preview-state skeleton-state hidden">
+                        <div class="skeleton-page shadow-inner pulse">
+                            <div class="skeleton-line thick"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line"></div>
+                        </div>
+                    </div>
+
+                    <div id="preview-result" class="preview-state result-state hidden">
+                        <div class="mock-generated-doc shadow-inner font-messy color-blue bg-lined">
+                            <p class="written-text">The quick brown fox jumps over the lazy dog. Here is your generated handwriting result that looks authentic, preserving a touch of human imperfections.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="download-actions mt-16">
+                    <button id="btn-download-pdf" class="btn-secondary" disabled>
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Download PDF
+                    </button>
+                    <button id="btn-download-img" class="btn-secondary" disabled>
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        Download Images
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
